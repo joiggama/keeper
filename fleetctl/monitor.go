@@ -7,6 +7,10 @@ import (
 	"strings"
 )
 
+type App struct {
+	Name string
+}
+
 type Unit struct {
 	Id     string
 	State  string
@@ -21,7 +25,22 @@ func Monitor() {
 
 	if len(failed) > 0 {
 		fmt.Println("Failed units:", len(failed))
+		failed_apps := ListFailedApps(failed)
+		fmt.Println(failed_apps)
 	}
+}
+
+func ListFailedApps(units []Unit) []App {
+	var apps []App
+
+	r, _ := regexp.Compile(`(\w+-\w+)_`)
+
+	for _, unit := range units {
+		app := r.FindStringSubmatch(unit.Id)
+		apps = append(apps, App{Name: app[1]})
+	}
+
+	return apps
 }
 
 func ListUnits() []Unit {
