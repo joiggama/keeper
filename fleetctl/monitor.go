@@ -11,6 +11,7 @@ import (
 type App struct {
 	Name    string
 	Version int
+	Service string
 }
 
 type Unit struct {
@@ -35,12 +36,18 @@ func Monitor() {
 func ListFailedApps(units []Unit) []App {
 	var apps []App
 
-	r, _ := regexp.Compile(`(\w+-\w+)_v(\d+)`)
+	r, _ := regexp.Compile(`(\w+-\w+)_v(\d+).(\w+).`)
 
 	for _, unit := range units {
-		name := r.FindStringSubmatch(unit.Id)[1]
-		version, _ := strconv.Atoi(r.FindStringSubmatch(unit.Id)[2])
-		apps = append(apps, App{Name: name, Version: version})
+		submatches := r.FindStringSubmatch(unit.Id)
+
+		version, _ := strconv.Atoi(submatches[2])
+
+		apps = append(apps, App{
+			Name:    submatches[1],
+			Version: version,
+			Service: submatches[3],
+		})
 	}
 
 	return apps
