@@ -4,11 +4,13 @@ import (
 	"fmt"
 	"os/exec"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
 type App struct {
-	Name string
+	Name    string
+	Version int
 }
 
 type Unit struct {
@@ -33,11 +35,12 @@ func Monitor() {
 func ListFailedApps(units []Unit) []App {
 	var apps []App
 
-	r, _ := regexp.Compile(`(\w+-\w+)_`)
+	r, _ := regexp.Compile(`(\w+-\w+)_v(\d+)`)
 
 	for _, unit := range units {
-		app := r.FindStringSubmatch(unit.Id)
-		apps = append(apps, App{Name: app[1]})
+		name := r.FindStringSubmatch(unit.Id)[1]
+		version, _ := strconv.Atoi(r.FindStringSubmatch(unit.Id)[2])
+		apps = append(apps, App{Name: name, Version: version})
 	}
 
 	return apps
