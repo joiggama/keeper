@@ -3,8 +3,8 @@ package main
 import (
 	"time"
 
-	"github.com/joiggama/unit-keeper/config"
-	"github.com/joiggama/unit-keeper/fleetctl"
+	"github.com/joiggama/keeper/config"
+	"github.com/joiggama/keeper/fleetctl"
 )
 
 func main() {
