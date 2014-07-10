@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/joiggama/keeper/config"
-	"github.com/joiggama/keeper/fleetctl"
+	"github.com/joiggama/keeper/deis"
 )
 
 func main() {
@@ -15,6 +15,6 @@ func main() {
 	for {
 		<-tick.C
 
-		go fleetctl.Monitor()
+		go deis.Monitor()
 	}
 }
