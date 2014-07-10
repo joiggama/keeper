@@ -15,6 +15,6 @@ func main() {
 	for {
 		<-tick.C
 
-		go deis.Monitor()
+		deis.Monitor()
 	}
 }
