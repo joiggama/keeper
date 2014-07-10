@@ -2,6 +2,8 @@ package deis
 
 import (
 	"fmt"
+	"log"
+	"os/exec"
 	"regexp"
 	"strconv"
 
@@ -47,7 +49,23 @@ func ListServices() []Service {
 }
 
 func (self *Service) Stop() {
-	name := fmt.Sprintf("%s_v%d.%s.%d.service", self.App, self.Version, self.Name, self.Id)
-	// W00t!!
-	fmt.Println("Killing:", name)
+	name := fmt.Sprintf("%s_v%d.%s.%d.service",
+		self.App,
+		self.Version,
+		self.Name,
+		self.Id,
+	)
+
+	stopCmd := exec.Command("fleetctl", "stop", name)
+
+	stopCmd.Start()
+
+	log.Println("Killing:", name)
+
+	err := stopCmd.Wait()
+
+	if err != nil {
+		log.Println(err)
+	}
+
 }
