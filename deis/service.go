@@ -1,6 +1,7 @@
 package deis
 
 import (
+	"fmt"
 	"regexp"
 	"strconv"
 
@@ -12,6 +13,8 @@ type Service struct {
 	Version int
 	Name    string
 	Id      int
+
+	Status string
 }
 
 func ListServices() []Service {
@@ -36,8 +39,15 @@ func ListServices() []Service {
 			Version: version,
 			Name:    submatches[3],
 			Id:      id,
+			Status:  unit.Sub,
 		})
 	}
 
 	return services
+}
+
+func (self *Service) Stop() {
+	name := fmt.Sprintf("%s_v%d.%s.%d.service", self.App, self.Version, self.Name, self.Id)
+	// W00t!!
+	fmt.Println("Killing:", name)
 }
