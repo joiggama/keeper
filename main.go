@@ -13,8 +13,8 @@ func main() {
 	tick := time.NewTicker(*config.INTERVAL)
 
 	for {
-		<-tick.C
-
 		deis.Monitor()
+
+		<-tick.C
 	}
 }
