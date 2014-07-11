@@ -1,71 +1,74 @@
 package deis
 
 import (
-	"fmt"
-	"log"
-	"os/exec"
-	"regexp"
-	"strconv"
-
-	"github.com/joiggama/keeper/fleetctl"
+	"sort"
 )
 
 type Service struct {
-	App     string
-	Version int
-	Name    string
-	Id      int
-
-	Status string
+	AppName   string
+	Name      string
+	Instances []Instance
 }
 
 func ListServices() []Service {
-	var services []Service
+	var list []Service
 
-	units := fleetctl.ListUnits()
+	services := map[string]Service{}
 
-	r, _ := regexp.Compile(`(\w+-\w+)_v(\d+)\.(\w+)\.(\d+)\.(service)`)
+	for _, instance := range ListInstances() {
 
-	for _, unit := range units {
-		submatches := r.FindStringSubmatch(unit.Id)
+		service_id := instance.AppName + "." + instance.ServiceName
+		service := services[service_id]
 
-		if len(submatches) < 6 {
-			continue
+		if service.Present() != true {
+			services[service_id] = Service{
+				AppName:   instance.AppName,
+				Name:      instance.ServiceName,
+				Instances: []Instance{instance},
+			}
+		} else {
+			service.Instances = append(service.Instances, instance)
+			services[service_id] = service
 		}
-
-		version, _ := strconv.Atoi(submatches[2])
-		id, _ := strconv.Atoi(submatches[4])
-
-		services = append(services, Service{
-			App:     submatches[1],
-			Version: version,
-			Name:    submatches[3],
-			Id:      id,
-			Status:  unit.Sub,
-		})
 	}
 
-	return services
+	return list
 }
 
-func (self *Service) Stop() {
-	name := fmt.Sprintf("%s_v%d.%s.%d.service",
-		self.App,
-		self.Version,
-		self.Name,
-		self.Id,
-	)
+func (self *Service) LatestVersion() int {
+	return self.Versions()[len(self.Versions())-1]
+}
 
-	stopCmd := exec.Command("fleetctl", "stop", name)
+func (self *Service) OldInstances() (bool, []Instance) {
+	var old []Instance
 
-	stopCmd.Start()
-
-	log.Println("Killing:", name)
-
-	err := stopCmd.Wait()
-
-	if err != nil {
-		log.Println(err)
+	if len(self.Instances) < 2 {
+		return false, old
 	}
 
+	current_version := self.LatestVersion()
+
+	for _, instance := range self.Instances {
+		if instance.Version < (current_version - 2) {
+			old = append(old, instance)
+		}
+	}
+
+	return len(old) > 0, old
+}
+
+func (self *Service) Present() bool {
+	return len(self.Instances) > 0
+}
+
+func (self *Service) Versions() []int {
+	var versions []int
+
+	for _, instance := range self.Instances {
+		versions = append(versions, instance.Version)
+	}
+
+	sort.Ints(versions)
+
+	return versions
 }
